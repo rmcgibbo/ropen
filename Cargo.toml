@@ -1,0 +1,21 @@
+[package]
+edition = "2018"
+name = "ropen"
+version = "0.1.0"
+
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
+opt-level = "z"  # Optimize for size.
+lto = true
+
+[dependencies]
+futures-util = "*"
+lazy_static = "*"
+tarpc = {version = "*", features = ["serde-transport-bincode", "tcp", "serde-transport"]}
+tempdir = "*"
+thiserror = "*"
+serde = {version = "*"}
+structopt = "*"
+tokio = {version = "*", features = ["full", "tracing"]}
+tracing = "*"
+tracing-subscriber = {version = "0.3.5", features = ["env-filter"]}
