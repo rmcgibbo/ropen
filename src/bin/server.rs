@@ -1,4 +1,4 @@
-use std::ffi::OsString;
+use std::{ffi::OsString, path::PathBuf};
 
 use futures_util::StreamExt;
 use ropen::{RopenService, RpcError};
@@ -50,15 +50,27 @@ impl RopenService for RopenServer {
         tracing::info!("{:?} {:?}", app_, temp_fn);
         let f = tokio::process::Command::new(app_).arg(&temp_fn).output();
         tokio::spawn(async move {
-            f.await.unwrap();
-            tracing::info!("Removing {:?}", &temp_fn);
-            std::fs::remove_file(&temp_fn).expect("Unable to remove file");
-            std::fs::remove_dir(&temp_fn.parent().expect("foo"))
-                .expect("Unable to remove directory");
+            if let Err(e) = f.await {
+                tracing::error!("{}", e);
+            };
+            if let Err(e) = cleanup(temp_fn) {
+                tracing::error!("{}", e);
+            }
         });
 
         Ok(())
     }
+}
+
+fn cleanup(temp_fn: PathBuf) -> std::io::Result<()> {
+    tracing::info!("Removing {:?}", &temp_fn);
+    std::fs::remove_file(&temp_fn)?;
+    std::fs::remove_dir(
+        &temp_fn
+            .parent()
+            .expect("We created this file to have a parent"),
+    )?;
+    Ok(())
 }
 
 #[tokio::main]
@@ -67,8 +79,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut incoming =
         tarpc::serde_transport::tcp::listen("localhost:40877", Bincode::default).await?;
     loop {
-        let transport = incoming.next().await.unwrap().unwrap();
-        let fut = BaseChannel::with_defaults(transport).execute(RopenServer.serve());
-        tokio::spawn(fut);
+        if let Some(x) = incoming.next().await {
+            match x {
+                Ok(transport) => {
+                    let fut = BaseChannel::with_defaults(transport).execute(RopenServer.serve());
+                    tokio::spawn(fut);
+                }
+                Err(e) => {
+                    tracing::error!("{}", e)
+                }
+            };
+        }
     }
 }
