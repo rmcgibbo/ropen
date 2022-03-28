@@ -17,18 +17,18 @@ Installation
 My `home.nix` has this snippet:
 
 ```
-    systemd.user.services.ropen = {
-    Unit = {
-      After = [ "graphical-session-pre.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Install = { WantedBy = [ "graphical-session.target" ]; };
-    Service = {
-      ExecStart = "${pkgs.ropen}/bin/server";
-      Restart = "on-failure";
-      RestartSec = 3;
-    };
+systemd.user.services.ropen = {
+  Unit = {
+    After = [ "graphical-session-pre.target" ];
+    PartOf = [ "graphical-session.target" ];
   };
+  Install = { WantedBy = [ "graphical-session.target" ]; };
+  Service = {
+    ExecStart = "${pkgs.ropen}/bin/server";
+    Restart = "on-failure";
+    RestartSec = 3;
+  };
+};
 ```
 
 2. SSH to your remote srvers with remote forwarding of 40877: `ssh -R 40877:localhost:40877 user@example.org`.
