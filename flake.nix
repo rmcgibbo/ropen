@@ -10,10 +10,13 @@
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+        lib = pkgs.lib;
         naersk-lib = pkgs.callPackage naersk { };
+        ropen = naersk-lib.buildPackage { root = ./.; };
       in
+      rec
       {
-        defaultPackage = naersk-lib.buildPackage { root = ./.; };
+        defaultPackage = ropen;
         devShell = pkgs.mkShell rec {
           buildInputs = with pkgs; [
             cargo
@@ -23,6 +26,31 @@
             rustfmt
             rust-analyzer
           ];
+        };
+
+        checks = lib.optionalAttrs (system == "x86_64-linux") {
+          int = pkgs.nixosTest ({
+            nodes.vm = { ... }: {
+              imports = [{ virtualisation.graphics = false; }];
+              environment.systemPackages = [ ropen ];
+              systemd.services.ropen = {
+                wants = [ "network-online.target" ];
+                wantedBy = [ "multi-user.target" ];
+                serviceConfig = {
+                  ExecStart = "${ropen}/bin/server";
+                };
+              };
+            };
+
+            testScript = ''
+                start_all()
+                vm.wait_for_unit("ropen.service")
+                vm.succeed("echo 'echo bar > /tmp/foo' > run.sh")
+                vm.succeed("ropen run.sh /bin/sh")
+                vm.succeed("cat /tmp/foo") == "bar\n"
+            '';
+          }
+          );
         };
       });
 }
