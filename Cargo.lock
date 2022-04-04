@@ -648,7 +648,6 @@ name = "ropen"
 version = "0.1.0"
 dependencies = [
  "futures-util",
- "lazy_static",
  "serde",
  "structopt",
  "tarpc",

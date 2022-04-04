@@ -1,4 +1,4 @@
-use std::{ffi::OsString, path::PathBuf};
+use std::ffi::OsString;
 
 use futures_util::StreamExt;
 use ropen::{RopenService, RpcError};
@@ -8,12 +8,7 @@ use tarpc::{
     tokio_serde::formats::Bincode,
 };
 
-use std::collections::hash_map::DefaultHasher;
-use std::hash::Hasher;
 use tokio::io::AsyncWriteExt;
-lazy_static::lazy_static! {
-    static ref TEMPDIR: tempdir::TempDir = tempdir::TempDir::new("ropen").unwrap();
-}
 
 #[derive(Clone, Debug)]
 struct RopenServer;
@@ -31,15 +26,8 @@ impl RopenService for RopenServer {
             .file_name()
             .ok_or_else(|| RpcError::InvalidFilename { path: path.clone() })?;
 
-        // hash the contents
-        let mut h = DefaultHasher::new();
-        h.write(&content);
-        let x = h.finish();
-
-        // make a directory just for this file
-        let tempdir = TEMPDIR.path().join(format!("{:x}", x));
-        std::fs::create_dir(&tempdir)?;
-        let temp_fn = tempdir.join(&filename);
+	let temp_dir: tempdir::TempDir = tempdir::TempDir::new("ropen").unwrap();
+        let temp_fn = temp_dir.path().join(&filename);
 
         // save the file
         let mut f = tokio::fs::File::create(&temp_fn).await?;
@@ -53,24 +41,12 @@ impl RopenService for RopenServer {
             if let Err(e) = f.await {
                 tracing::error!("{}", e);
             };
-            if let Err(e) = cleanup(temp_fn) {
-                tracing::error!("{}", e);
-            }
+	    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+	    drop(temp_dir);
         });
 
         Ok(())
     }
-}
-
-fn cleanup(temp_fn: PathBuf) -> std::io::Result<()> {
-    tracing::info!("Removing {:?}", &temp_fn);
-    std::fs::remove_file(&temp_fn)?;
-    std::fs::remove_dir(
-        &temp_fn
-            .parent()
-            .expect("We created this file to have a parent"),
-    )?;
-    Ok(())
 }
 
 #[tokio::main]

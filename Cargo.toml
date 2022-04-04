@@ -9,7 +9,6 @@ lto = true
 
 [dependencies]
 futures-util = "*"
-lazy_static = "*"
 tarpc = {version = "*", features = ["serde-transport-bincode", "tcp", "serde-transport"]}
 tempdir = "*"
 thiserror = "*"
