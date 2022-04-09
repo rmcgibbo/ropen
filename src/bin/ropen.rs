@@ -1,30 +1,53 @@
+use anyhow::Result;
 use ropen::RopenServiceClient;
-use std::ffi::OsString;
-use std::io::Read;
+use std::sync::Arc;
 use structopt::StructOpt;
 use tarpc::{client, context, tokio_serde::formats::Bincode};
+use tokio::io::AsyncReadExt;
 
 #[derive(StructOpt)]
 struct Options {
-    path: std::path::PathBuf,
-    app: Option<OsString>,
+    paths: Vec<std::path::PathBuf>,
+    #[structopt(long)]
+    app: Option<Vec<String>>,
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let options = Options::from_args();
+    let app = options.app;
     let transport =
         tarpc::serde_transport::tcp::connect("localhost:40877", Bincode::default).await?;
+    let client = Arc::new(RopenServiceClient::new(client::Config::default(), transport).spawn());
 
-    let client = RopenServiceClient::new(client::Config::default(), transport).spawn();
+    let handles: Vec<_> = options
+        .paths
+        .into_iter()
+        .map(|path| {
+            let app = app.clone();
+            let client = client.clone();
+            tokio::spawn(async move { upload(path, app, client).await })
+        })
+        .collect();
+    for h in handles {
+        h.await??;
+    }
+    Ok(())
+}
+
+async fn upload(
+    path: std::path::PathBuf,
+    app: Option<Vec<String>>,
+    client: Arc<RopenServiceClient>,
+) -> Result<()> {
     let mut buf = Vec::new();
-    std::fs::OpenOptions::new()
+    tokio::fs::OpenOptions::new()
         .read(true)
-        .open(&options.path)?
-        .read_to_end(&mut buf)?;
+        .open(&path)
+        .await?
+        .read_to_end(&mut buf)
+        .await?;
 
-    client
-        .upload(context::current(), options.path, options.app, buf)
-        .await??;
+    client.upload(context::current(), path, app, buf).await??;
     Ok(())
 }

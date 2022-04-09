@@ -46,7 +46,7 @@
                 start_all()
                 vm.wait_for_unit("ropen.service")
                 vm.succeed("echo 'echo bar > /tmp/foo' > run.sh")
-                vm.succeed("ropen run.sh /bin/sh")
+                vm.succeed("ropen run.sh --app /bin/sh")
                 vm.succeed("cat /tmp/foo") == "bar\n"
             '';
           }

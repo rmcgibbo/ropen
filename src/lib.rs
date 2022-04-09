@@ -1,5 +1,3 @@
-use std::ffi::OsString;
-
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -7,7 +5,7 @@ use thiserror::Error;
 pub trait RopenService {
     async fn upload(
         path: std::path::PathBuf,
-        app: Option<OsString>,
+        app: Option<Vec<String>>,
         contents: Vec<u8>,
     ) -> Result<(), RpcError>;
 }

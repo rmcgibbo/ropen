@@ -8,10 +8,13 @@ opt-level = "z"  # Optimize for size.
 lto = true
 
 [dependencies]
+anyhow = "*"
 futures-util = "*"
+infer = "*"
 tarpc = {version = "*", features = ["serde-transport-bincode", "tcp", "serde-transport"]}
 tempdir = "*"
 thiserror = "*"
+toml = "*"
 serde = {version = "*"}
 structopt = "*"
 tokio = {version = "*", features = ["full", "tracing"]}
