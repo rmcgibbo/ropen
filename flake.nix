@@ -21,6 +21,7 @@
           buildInputs = with pkgs; [
             cargo
             cargo-udeps
+            cargo-edit
             rustc
             clippy
             rustfmt

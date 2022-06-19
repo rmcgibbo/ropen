@@ -1,14 +1,14 @@
 use anyhow::Result;
+use clap::Parser;
 use ropen::RopenServiceClient;
 use std::sync::Arc;
-use structopt::StructOpt;
 use tarpc::{client, context, tokio_serde::formats::Bincode};
 use tokio::io::AsyncReadExt;
 
-#[derive(StructOpt)]
+#[derive(Parser, Debug)]
 struct Options {
     paths: Vec<std::path::PathBuf>,
-    #[structopt(long)]
+    #[clap(long)]
     app: Option<Vec<String>>,
 }
 

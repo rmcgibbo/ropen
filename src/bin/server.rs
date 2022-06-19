@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 
+use clap::Parser;
 use std::sync::{Arc, RwLock};
-use structopt::StructOpt;
 
 use futures_util::StreamExt;
 use ropen::{RopenService, RpcError};
@@ -14,7 +14,7 @@ use tarpc::{
 
 use tokio::io::AsyncWriteExt;
 
-#[derive(StructOpt)]
+#[derive(Parser, Debug)]
 struct Options {
     config: Option<std::path::PathBuf>,
 }
