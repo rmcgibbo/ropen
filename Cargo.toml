@@ -9,7 +9,7 @@ lto = true
 
 [dependencies]
 anyhow = "1.0.58"
-clap = {version = "3.2.5", features = ["derive"]}
+clap = { version = "3.2.6", features = ["derive"] }
 futures-util = "0.3.21"
 infer = "0.8.1"
 tarpc = { version = "0.29.0", features = ["serde-transport-bincode", "tcp", "serde-transport"] }
