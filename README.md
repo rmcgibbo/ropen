@@ -49,10 +49,10 @@ Usage
 ```
 $ ropen file
 ```
-or to use a different app other than xdg-open:
+or to use a different app other than `open` (on OSX) or `xdg-open` (on Linux):
 
 ```
-$ ropen file app-other-than-xdg-open
+$ ropen file --app app-other-than-xdg-open
 ```
 
 
