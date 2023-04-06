@@ -4,8 +4,8 @@ This is a tool which automates the process of copying back figures from an ssh s
 them locally without X forwarding. The idea is sort of like [rmate](https://github.com/textmate/rmate).
 
 When you call `ropen <e.g. figure-1.png>` from within your SSH session, it'll copy the file back to
-your workstation and run `xdg-open` on it, so that you can see the figure. For small images and stuff,
-this is much faster than X11.
+your workstation and run `open` or `xdg-open`, and pop up a figure that you can see the figure. For small images and
+stuff, this is much faster than X11.
 
 Unlike `rmate`, this doesn't copy back the file if you edit it. It's purely designed for visualization. When
 `xdg-open` returns, it deletes the copy of the file.
