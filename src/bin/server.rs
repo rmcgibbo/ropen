@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::collections::HashMap;
+use lazy_static;
 
 use clap::Parser;
 use std::sync::{Arc, RwLock};
@@ -26,6 +27,15 @@ struct Config {
 #[derive(Clone, Debug)]
 struct RopenServer {
     associations: Arc<RwLock<HashMap<String, Vec<String>>>>,
+}
+
+#[cfg(target_os = "macos")]
+lazy_static::lazy_static! {
+    static ref DEFAULT_COMMAND: &'static str = "open";
+}
+#[cfg(not(target_os = "macos"))]
+lazy_static::lazy_static! {
+    static ref DEFAULT_COMMAND: &'static str = "xdg-open";
 }
 
 #[tarpc::server]
@@ -96,14 +106,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut cfg: Config = toml::from_slice(&std::fs::read(&path)?[..])?;
             if cfg.associations.get("").is_none() {
                 cfg.associations
-                    .insert("".to_string(), vec!["xdg-open".to_string()]);
+                    .insert("".to_string(), vec![(*DEFAULT_COMMAND).to_string()]);
             }
 
             Arc::new(RwLock::new(cfg.associations))
         }
         None => {
             let mut x = HashMap::new();
-            x.insert("".to_string(), vec!["xdg-open".to_string()]);
+            x.insert("".to_string(), vec![(*DEFAULT_COMMAND).to_string()]);
             Arc::new(RwLock::new(x))
         }
     };
