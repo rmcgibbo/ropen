@@ -8,7 +8,7 @@ your workstation and run `open` or `xdg-open`, and pop up a figure that you can 
 stuff, this is much faster than X11.
 
 Unlike `rmate`, this doesn't copy back the file if you edit it. It's purely designed for visualization. When
-`xdg-open` returns, it deletes the copy of the file.
+`open`/`xdg-open` returns, it deletes the copy of the file.
 
 Installation
 ------------
